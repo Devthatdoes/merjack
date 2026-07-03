@@ -1,0 +1,12 @@
+.env
+merjack.db
+merjack.db
+BUILD_JOURNAL.md
+docs/DESIGN.md
+.opencode/
+.claude/
+sourcing/.libretto/config.json
+**/__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: merjack
+Version: 0.1.0
+Summary: Merjack — agentic business-acquisition deal finder & rater
+Requires-Python: >=3.11
+Requires-Dist: pydantic>=2.7
+Requires-Dist: python-dotenv>=1.0
+Provides-Extra: agent
+Requires-Dist: langgraph>=0.2; extra == "agent"
+Requires-Dist: langchain>=0.3; extra == "agent"
+Requires-Dist: langchain-anthropic>=0.2; extra == "agent"
+Requires-Dist: langchain-openai>=0.2; extra == "agent"
+Requires-Dist: langchain-mcp-adapters>=0.1; extra == "agent"
+Requires-Dist: langgraph-checkpoint-sqlite>=2.0; extra == "agent"
+Provides-Extra: ui
+Requires-Dist: streamlit>=1.36; extra == "ui"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"

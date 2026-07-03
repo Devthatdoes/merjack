@@ -1,0 +1,16 @@
+pydantic>=2.7
+python-dotenv>=1.0
+
+[agent]
+langgraph>=0.2
+langchain>=0.3
+langchain-anthropic>=0.2
+langchain-openai>=0.2
+langchain-mcp-adapters>=0.1
+langgraph-checkpoint-sqlite>=2.0
+
+[dev]
+pytest>=8.0
+
+[ui]
+streamlit>=1.36

@@ -1,0 +1,33 @@
+"""Business categories for the buy-box industry filter. Kept short and concrete so
+they match listing data on a simple lowercase substring check."""
+
+INDUSTRY_OPTIONS = [
+    "HVAC",
+    "Plumbing",
+    "Electrical",
+    "Landscaping",
+    "Cleaning",
+    "Pest Control",
+    "Auto Repair",
+    "Roofing",
+    "Pool Service",
+    "Home Inspection",
+    "Septic",
+    "Self Storage",
+    "Laundromat",
+    "Car Wash",
+    "Towing",
+    "Painting",
+    "Garage Door",
+    "Appliance Repair",
+    "Restaurant",
+    "Coffee Shop",
+    "Retail",
+    "Fitness",
+    "Salon",
+    "Daycare",
+    "Trucking",
+    "Manufacturing",
+    "E-commerce",
+    "Property Management",
+]

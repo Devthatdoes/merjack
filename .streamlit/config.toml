@@ -1,0 +1,13 @@
+# Merjack theme — "private-equity deal memo": ivory paper, ink text, restrained.
+# Color semantics (good/bad) are carried by the app's red->amber->green grading,
+# so the base palette stays deliberately neutral.
+[theme]
+base = "light"
+primaryColor = "#16130F"             # near-black ink for widget accents/buttons
+backgroundColor = "#FBF8F2"          # warm ivory paper
+secondaryBackgroundColor = "#F4EFE6" # sidebar / raised neutral
+textColor = "#16130F"
+font = "sans-serif"
+
+[server]
+headless = true
