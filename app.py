@@ -18,6 +18,8 @@ import random
 import streamlit as st
 
 from merjack import config, keys, llm
+from merjack.utils.parsing import parse_money
+from merjack.analysis.extract import extract_listing_from_text, fetch_url_text
 from merjack.glossary import GLOSSARY
 from merjack.analysis.explain import explain_deal, summarize_deal
 from merjack.chat import answer as chat_answer
@@ -302,7 +304,7 @@ def rows_from_csv_text(text: str) -> list[dict]:
 
 def get_source():
     st.subheader("1 · Load listings")
-    mode = st.radio("Source", ["Sample data", "Random data", "Paste CSV", "Upload file"], horizontal=True)
+    mode = st.radio("Source", ["Sample data", "Random data", "Paste CSV", "Upload file", "Add new deal"], horizontal=True)
 
     if mode == "Sample data":
         st.caption("Four example listings.")
@@ -328,6 +330,81 @@ def get_source():
                 return ManualSource.from_rows(rows_from_csv_text(text))
             except Exception as e:  # noqa: BLE001
                 st.error(f"Could not read that CSV: {e}")
+        return None
+
+    if mode == "Add new deal":
+        st.caption("Manually enter a deal or import via URL/Text.")
+        
+        # Magic Import Section
+        with st.expander("✨ Magic Import (URL or Text)"):
+            import_mode = st.radio("Import via", ["URL", "Paste Text"], horizontal=True)
+            import_input = st.text_input("Input", placeholder="https://... or paste listing text here")
+            if st.button("Extract Details"):
+                if import_input:
+                    with st.spinner("Extracting..."):
+                        text = import_input if import_mode == "Paste Text" else fetch_url_text(import_input)
+                        draft = extract_listing_from_text(text)
+                        if draft:
+                            st.session_state["listing_draft"] = draft
+                            st.success("Draft created! Fill in the details below.")
+                        else:
+                            st.error("Could not extract a valid listing. Try pasting the text directly.")
+                else:
+                    st.warning("Please provide a URL or text.")
+
+        # Dynamic Entry Form
+        draft = st.session_state.get("listing_draft")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            title = st.text_input("Listing Title", value=draft.title if draft else "")
+            state = st.text_input("State (2-letter)", value=draft.state if draft else "").strip().upper()
+            industry = st.text_input("Industry", value=draft.industry if draft else "")
+        
+        with col2:
+            asking_str = st.text_input("Asking Price", value=f"${draft.asking_price:,.0f}" if draft and draft.asking_price else "")
+            sde_str = st.text_input("Cash Flow (SDE)", value=f"${draft.cash_flow_sde:,.0f}" if draft and draft.cash_flow_sde else "")
+            revenue_str = st.text_input("Revenue", value=f"${draft.revenue:,.0f}" if draft and draft.revenue else "")
+
+        # Live Feedback
+        asking = parse_money(asking_str)
+        sde = parse_money(sde_str)
+        
+        if asking and sde:
+            multiple = asking / sde
+            st.markdown(f"""
+                <div style='padding:10px; background:#F4EFE6; border-radius:8px; margin:10px 0;'>
+                    <div style='font-size:.7rem; color:var(--muted); font-weight:700; text-transform:uppercase;'>Live Analytics</div>
+                    <div style='display:flex; gap:20px; margin-top:5px;'>
+                        <div><span style='font-size:.8rem; color:var(--muted);'>Multiple:</span> <b class='merjack-mono'>{multiple:.2f}x</b></div>
+                        <div><span style='font-size:.8rem; color:var(--muted);'>Grade:</span> {score_pill(grade_multiple(multiple, 3.0))}</div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        # Optional Details
+        with st.expander("Additional Details (Optional)"):
+            est = st.text_input("Year Established")
+            emp = st.text_input("Number of Employees")
+            desc = st.text_area("Description", value=draft.description if draft else "")
+
+        if st.button("Save Listing", type="primary"):
+            if not title or not asking or not sde:
+                st.error("Title, Asking Price, and SDE are required.")
+            else:
+                # Create a single-row ManualSource to save the listing
+                new_listing = Listing(
+                    title=title, url=title, state=state, industry=industry,
+                    asking_price=asking, cash_flow_sde=sde, revenue=parse_money(revenue_str),
+                    year_established=int(est) if est and est.isdigit() else None,
+                    employees=int(emp) if emp and emp.isdigit() else None,
+                    description=desc
+                )
+                from merjack.storage import upsert_listing
+                upsert_listing(new_listing)
+                st.success("Listing saved!")
+                return ManualSource.from_rows([{"title": title, "url": title, "price": asking, "cash_flow": sde}])
+
         return None
 
     st.download_button("Download CSV template", TEMPLATE_CSV, "merjack_listings_template.csv",
